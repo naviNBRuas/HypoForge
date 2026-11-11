@@ -3,6 +3,12 @@
 > Organised English translation of the original assignment (`docs/assignment/trabalho1_sb1.pdf`, in Portuguese).
 > Portuguese version: [Projeto_Instrucoes.md](Projeto_Instrucoes.md).
 
+## University
+
+University of Brasília  
+Department of Computer Science  
+CIC0104 — Software Básico (Basic Software), class T02
+
 ## 1. Introduction
 
 Implement, in **C/C++**, a method that translates a simple assembly language into an object-code representation. The translator is an **assembler** for the hypothetical language presented in class.

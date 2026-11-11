@@ -43,9 +43,9 @@ O arquivo inteiro é sempre analisado; os erros são coletados, ordenados por li
 |--------|---------------------|
 | **LEXICO** | caractere inválido; identificador > 30 caracteres; token começando por dígito (`1ABC`, hexadecimal `0x10`); número fora do intervalo |
 | **SINTATICO** | quantidade de operandos errada (instruções, `SPACE`, `CONST`, `PUBLIC`…); instrução/diretiva desconhecida; vírgula entre operandos; dois rótulos no mesmo comando; argumento inválido de `SECTION`; rótulo sem comando |
-| **SEMANTICO** | rótulo não declarado; rótulo/seção duplicado; seção `TEXT` ausente; instrução em `DATA` / `CONST`,`SPACE` em `TEXT`; `EQU` após seção; `IF` fora de `TEXT`; salto para rótulo de dados; rótulo de código usado como dado; escrita em `CONST`; divisão por constante `0`; `BEGIN` sem `END` (e vice-versa); símbolo `PUBLIC` não definido |
+| **SEMANTICO** | rótulo não declarado; rótulo/seção duplicado; seção `TEXT` ausente; instrução em `DATA` / `CONST`,`SPACE` em `TEXT`; `EQU` após seção; `IF` fora de `TEXT`; salto para rótulo de dados; rótulo de código usado como dado; escrita em `CONST`; acesso além da área reservada por `SPACE`/`CONST` (`V + 2` com `V: SPACE 2`); divisão por constante `0`; `BEGIN` sem `END` (e vice-versa); símbolo `PUBLIC` não definido |
 
-Linha que já tem erro léxico não recebe análise sintática adicional (evita cascata) e mensagens idênticas na mesma linha são reportadas uma vez.
+Linha que já tem erro léxico não recebe análise sintática nem busca de EQU adicionais (evita cascata) e mensagens idênticas na mesma linha são reportadas uma vez.
 
 ## Decisões de interpretação
 
@@ -64,10 +64,14 @@ O enunciado deixa alguns pontos em aberto. Estas são as escolhas feitas (todas 
 | `IF` falso | Descarta a próxima linha não vazia |
 | Checagens semânticas extras | escrita em const, divisão por constante zero, tipo de rótulo incompatível — casos clássicos além dos 6 listados |
 | Nome do `.LIG` | Nome do primeiro módulo (`prog1.asm` → `prog1.LIG`) |
+| Deslocamento `ROTULO + N` | Número decimal ou nome de `EQU`; o deslocamento deve ficar dentro da área do `SPACE`/`CONST` |
+| Codificação da entrada | BOM UTF-8 é ignorado; finais de linha LF, CRLF e apenas CR são aceitos; acentos só em comentários |
+| Execução com falha | Nenhum `.OBJ`/`.LIG` é gravado e um antigo, de execução anterior, é removido |
+| `./montador prog` | Se `prog` não existir, tenta `prog.asm` |
 
 ## Ligador
 
-`ligador` executa `montador --modular` em cada arquivo (procurado ao lado do binário `ligador`, depois em `./`, depois no `PATH`),
+`ligador` executa `montador --modular` em cada arquivo (procurado ao lado do binário `ligador`, depois no diretório atual, depois no `PATH`),
 lê os objetos modulares ([FORMATO_OBJETO.md](FORMATO_OBJETO.md)) e:
 
 1. calcula a **base** de cada módulo (soma dos tamanhos dos anteriores);

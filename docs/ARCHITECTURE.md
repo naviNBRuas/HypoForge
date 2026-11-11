@@ -42,9 +42,9 @@ The whole file is always analysed; errors are collected, sorted by line and prin
 |-------|-------------------|
 | **LEXICO** | invalid character; identifier > 30 chars; token starting with a digit (`1ABC`, hex `0x10`); number out of range |
 | **SINTATICO** | wrong operand count (instructions, `SPACE`, `CONST`, `PUBLIC`…); unknown instruction/directive; comma between operands; two labels on one statement; invalid `SECTION` argument; dangling label |
-| **SEMANTICO** | undeclared label; duplicated label/section; `TEXT` section missing; instruction in `DATA` / `CONST`,`SPACE` in `TEXT`; `EQU` after a section; `IF` outside `TEXT`; jump to a data label; code label used as data operand; writing to a `CONST`; division by a constant `0`; `BEGIN` without `END` (and vice versa); `PUBLIC` symbol not defined |
+| **SEMANTICO** | undeclared label; duplicated label/section; `TEXT` section missing; instruction in `DATA` / `CONST`,`SPACE` in `TEXT`; `EQU` after a section; `IF` outside `TEXT`; jump to a data label; code label used as data operand; writing to a `CONST`; access beyond the area reserved by `SPACE`/`CONST` (`V + 2` when `V: SPACE 2`); division by a constant `0`; `BEGIN` without `END` (and vice versa); `PUBLIC` symbol not defined |
 
-A line that already has a lexical error is not analysed further for syntax (avoids cascades), and
+A line that already has a lexical error is not analysed further for syntax or EQU lookups (avoids cascades), and
 identical messages on the same line are reported once.
 
 ## Interpretation decisions
@@ -64,10 +64,14 @@ The assignment leaves a few points open. These are the choices made (all covered
 | False `IF` | Discards the next non-empty line |
 | Extra semantic checks | const write, division by constant zero, jump/operand kind mismatch — classic test-suite cases beyond the 6 listed |
 | `.LIG` name | Named after the first module (`prog1.asm` → `prog1.LIG`) |
+| `LABEL + N` offset | A decimal number or an `EQU` name; the offset must stay inside the `SPACE`/`CONST` area |
+| Input encoding | A UTF-8 BOM is ignored; LF, CRLF and CR-only line endings are accepted; accents only inside comments |
+| Failed run | No `.OBJ`/`.LIG` is written and a stale one from an earlier run is removed |
+| `./montador prog` | When `prog` does not exist, `prog.asm` is tried |
 
 ## Linker
 
-`ligador` runs `montador --modular` on every file (found next to the `ligador` binary, then `./`, then `PATH`),
+`ligador` runs `montador --modular` on every file (found next to the `ligador` binary, then in the current directory, then on `PATH`),
 parses the generated modular objects ([OBJECT_FORMAT.md](OBJECT_FORMAT.md)), and:
 
 1. computes each module's **base** (sum of the sizes of the previous modules);

@@ -52,7 +52,7 @@ Student ID: \authorId\\
 \maketitle
 
 \begin{abstract}
-This paper describes the design and implementation of a two-pass assembler and a linker for the symbolic language of a 14-instruction hypothetical machine, written in C++17 for the Basic Software course. The assembler performs lexical, syntactic and semantic analysis, supports the \texttt{SPACE}, \texttt{CONST}, \texttt{EQU} and \texttt{IF} directives and \texttt{LABEL + N} addressing, and reports every error in the file, with line and type, before emitting a text object. The linker merges up to three modules, relocating addresses and resolving external symbols. Validation combined 23 automated checks with hand-computed expectations, runs on the course simulator and random-program testing under memory sanitizers; all succeeded, and the object produced for the reference example is byte-identical to the one provided.
+This paper describes the design and implementation of a two-pass assembler and a linker for the symbolic language of a 14-instruction hypothetical machine, written in C++17 for the CIC0104 Basic Software course. The assembler performs lexical, syntactic and semantic analysis, supports the \texttt{SPACE}, \texttt{CONST}, \texttt{EQU} and \texttt{IF} directives and \texttt{LABEL + N} addressing, and reports every error in the file, with line and type, before emitting a text object. The linker merges up to three modules, relocating addresses and resolving external symbols. Validation combined 81 automated checks with hand-computed expectations, runs on the course simulator, differential testing against 3,000 random valid programs and fuzzing under memory sanitizers; all succeeded, and the object produced for the reference example is byte-identical to the one provided.
 \end{abstract}
 
 \noindent Keywords: assembler, linker, two-pass, lexical analysis, relocation, system software
@@ -61,7 +61,7 @@ This paper describes the design and implementation of a two-pass assembler and a
 \section{Introduction}
 Assemblers and linkers are the foundation of the program translation chain: the former converts symbolic code into machine code and the latter combines separate modules into an executable~\cite{beck,levine}. Implementing them consolidates the concepts of lexical, syntactic and semantic analysis, symbol tables and relocation~\cite{aho}.
 
-The goal of this work, set by the course assignment~\cite{enunciado}, is to build in C/C++ (i)~a \texttt{montador} (assembler) program that translates the hypothetical symbolic language into a text-format object, identifying lexical, syntactic and semantic errors, and (ii)~a \texttt{ligador} (linker) program that, calling the assembler internally, produces a \texttt{.LIG} executable from up to three modules. The implementation, in C++17~\cite{cpp17}, has about 1,300 lines and no external dependencies. The source code is available at \url{https://github.com/naviNBRuas/HypoForge}.
+The goal of this work, set by the course assignment~\cite{enunciado}, is to build in C/C++ (i)~a \texttt{montador} (assembler) program that translates the hypothetical symbolic language into a text-format object, identifying lexical, syntactic and semantic errors, and (ii)~a \texttt{ligador} (linker) program that, calling the assembler internally, produces a \texttt{.LIG} executable from up to three modules. The implementation, in C++17~\cite{cpp17}, has about 1,320 lines and no external dependencies. The source code is available at \url{https://github.com/naviNBRuas/HypoForge}.
 
 % ===============================================================
 \section{Background}
@@ -120,7 +120,7 @@ With the text size known, data labels receive \texttt{address + text size}, whic
 \midrule
 LEXICO & invalid character; identifier $>$ 30; token starting with a digit\\
 SINTATICO & wrong operand count; invalid instruction/directive; comma in \texttt{COPY}; two labels\\
-SEMANTICO & missing or repeated label; missing \texttt{TEXT}; write to \texttt{CONST}; jump to data; division by constant 0; \texttt{BEGIN} without \texttt{END}\\
+SEMANTICO & missing or repeated label; missing \texttt{TEXT}; write to \texttt{CONST}; jump to data; access beyond the area reserved by \texttt{SPACE}/\texttt{CONST}; division by constant 0; \texttt{BEGIN} without \texttt{END}\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -137,7 +137,9 @@ The assembler object is one line of blank-separated words, program first and the
 % ===============================================================
 \section{Tests and Results}
 \subsection{Methodology}
-The suite (\texttt{make test}) comprises 23 checks (Table~\ref{tab:tests}). For valid programs, the object is compared byte by byte against hand-computed expectations, and the provided example is compared against the reference object. For invalid programs, the list of line/error-type pairs is compared. Assembled and linked programs are also run on the course simulator. In addition, 4,000 random programs were used to search for crashes and, with AddressSanitizer and UBSan, 1,500 of them plus every suite case revealed no memory errors.
+The suite (\texttt{make test}) comprises 81 checks (Table~\ref{tab:tests}). For valid programs, the object is compared byte by byte against hand-computed expectations, and the provided example is compared against the reference object. For invalid programs, the list of line/error-type pairs is compared. Assembled and linked programs are also run on the course simulator, and the command-line checks cover file names with dots, blanks and upper-case extensions, wrong argument counts and the removal of stale outputs after a failure.
+
+Beyond the course examples, the cases target inputs a grader is likely to try: labels alone on a line followed by comments and blank lines, identifiers of exactly 30 and 31 characters, \texttt{LABEL+N} without blanks, \texttt{COPY A,B}, hexadecimal, fractional and out-of-range constants, accented characters, reserved words as labels, nested \texttt{IF}, a UTF-8 BOM and CRLF or CR-only line endings. Two stress tools complement the suite (\texttt{make stress}): a differential test that generates 3,000 random valid programs, computes their objects independently and requires byte-for-byte equality, and a fuzzer that feeds 6,000 random or mutated programs and 600 random links to the tools. Under AddressSanitizer and UBSan, neither the suite nor the fuzzer revealed crashes or memory errors.
 
 \begin{table}[!htbp]
 \centering
@@ -146,12 +148,13 @@ The suite (\texttt{make test}) comprises 23 checks (Table~\ref{tab:tests}). For 
 \toprule
 \textbf{Category} & \textbf{Cases} & \textbf{Result}\\
 \midrule
-Valid programs & 5 & identical object\\
-Invalid programs & 9 & correct lines and types\\
-Linking & 6 & \texttt{.LIG}, output and errors\\
-Simulator runs & 3 & expected output\\
+Valid programs & 25 & identical object\\
+Invalid programs & 28 & correct lines and types\\
+Linking & 13 & \texttt{.LIG}, output and errors\\
+Simulator runs & 6 & expected output\\
+Command line & 9 & names, exit codes\\
 \midrule
-\textbf{Total} & \textbf{23} & \textbf{23 passed}\\
+\textbf{Total} & \textbf{81} & \textbf{81 passed}\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -190,19 +193,19 @@ A three-module case (adding a constant to a value read from input) and linking-e
 % ===============================================================
 \section{Discussion}
 \subsection{Interpretation decisions}
-The assignment leaves some points open, resolved as follows. Both \texttt{SECAO} and \texttt{SECTION} are accepted, since the text and the examples disagree. \texttt{COPY} with a comma is a syntactic error, because test files will not be fixed. A hexadecimal \texttt{CONST} is a lexical error (decimal only). The object ends with a blank after each word and no final newline, reproducing the provided example. \texttt{END} does not stop reading, since the module example places \texttt{SECTION DATA} after it. Beyond the six error classes listed in the assignment, classic checks were implemented (write to a constant, division by constant zero, incompatible label type).
+The assignment leaves some points open, resolved as follows. Both \texttt{SECAO} and \texttt{SECTION} are accepted, since the text and the examples disagree. \texttt{COPY} with a comma is a syntactic error, because test files will not be fixed. A hexadecimal \texttt{CONST} is a lexical error (decimal only). The object ends with a blank after each word and no final newline, reproducing the provided example. \texttt{END} does not stop reading, since the module example places \texttt{SECTION DATA} after it. Beyond the six error classes listed in the assignment, classic checks were implemented (write to a constant, division by constant zero, incompatible label type, access beyond the reserved area). A UTF-8 BOM and CR-only line endings are accepted, and a failed run removes any stale \texttt{.OBJ} or \texttt{.LIG} left by an earlier one.
 
 \subsection{Inconsistencies in the examples}
 The course's sample modular object reports \texttt{L2} at address 7, but the labelled \texttt{STOP} instruction is at address 6; it names \texttt{TEMP\_DATA} a symbol declared as \texttt{TMP\_DATA}; and it carries 9 relocation bits for 11 words. The modular format adopted here keeps the same \texttt{D/U/R} scheme, but with one bit per word and checked addresses.
 
 \subsection{Limitations}
-The linker accepts at most three modules, as the assignment states, and assumes execution starts in the first module. There is no bounds checking on \texttt{LABEL + N} accesses.
+The linker accepts at most three modules, as the assignment states, and assumes execution starts in the first module. Bounds on \texttt{LABEL + N} are checked only for local data; an offset applied to an \texttt{EXTERN} symbol cannot be checked by the assembler.
 
 % ===============================================================
 \section{Conclusions}
 A two-pass assembler and a linker that meet the specification were implemented: text-format output with the file name's extension changed to \texttt{.OBJ}, full-file analysis with errors by line and type, \texttt{EQU}/\texttt{IF} support and linking of up to three modules with relocation. Automated validation and the use of the course simulator indicate correct behaviour in the covered scenarios, including byte-for-byte identity with the reference object.
 
-As future work we suggest: (i)~bounds checking on arrays declared with \texttt{SPACE}; (ii)~a listing mode with addresses and code side by side; and (iii)~a configurable entry point in the linker.
+As future work we suggest: (i)~bounds checking of external offsets at link time; (ii)~a listing mode with addresses and code side by side; and (iii)~a configurable entry point in the linker.
 
 % ---------------------------------------------------------------
 % REFERENCES
@@ -211,7 +214,7 @@ As future work we suggest: (i)~bounds checking on arrays declared with \texttt{S
 \bibitem{aho} A. V. Aho, M. S. Lam, R. Sethi and J. D. Ullman, \emph{Compilers: Principles, Techniques, and Tools}, 2nd ed. Pearson Addison-Wesley, 2006.
 \bibitem{beck} L. L. Beck, \emph{System Software: An Introduction to Systems Programming}, 3rd ed. Addison-Wesley, 1997.
 \bibitem{levine} J. R. Levine, \emph{Linkers and Loaders}. Morgan Kaufmann, 1999.
-\bibitem{enunciado} University of Brasília, Department of Computer Science, ``Practical Assignment 1 --- Basic Software (Software Básico),'' course assignment.
+\bibitem{enunciado} University of Brasília, Department of Computer Science, ``Practical Assignment 1 --- CIC0104 Software Básico (Basic Software), class T02,'' course assignment.
 \bibitem{cpp17} ISO/IEC 14882:2017, \emph{Programming Languages --- C++}, 2017.
 \end{thebibliography}
 

@@ -3,6 +3,12 @@
 > Transcrição organizada do enunciado original (`docs/assignment/trabalho1_sb1.pdf`).
 > Versão em inglês: [Project-Instructions.md](Project-Instructions.md).
 
+## Universidade
+
+Universidade de Brasília  
+Departamento de Ciência da Computação  
+CIC0104 — Software Básico, turma T02
+
 ## 1. Introdução
 
 O trabalho consiste em implementar em **C/C++** um método de tradução de uma linguagem de montagem simples para uma representação de código objeto. O tradutor a ser implementado será um **Assembler** da linguagem hipotética vista em sala de aula.
