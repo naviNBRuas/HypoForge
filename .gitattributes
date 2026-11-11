@@ -4,8 +4,12 @@
 *.jpg binary
 tools/simulador/simulador binary
 tools/simulador/simulador.exe binary
-# this test intentionally uses CRLF line endings
+# these tests intentionally use CRLF, CR-only or BOM bytes; keep them exactly as written
 tests/valid/case_whitespace.asm -text
+tests/valid/utf8_bom_crlf.asm -text
+tests/valid/cr_only_line_endings.asm -text
+tests/valid/bin.asm -text
+tests/link/single_module/bin.asm -text
 # expected object files must keep their exact bytes (trailing blank, no newline)
 *.expected.OBJ -text
 expected.LIG -text
