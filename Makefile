@@ -1,5 +1,6 @@
 # Build: make            -> ./montador and ./ligador
 # Tests: make test       -> runs scripts/run_tests.sh
+#        make stress     -> random-program fuzzing + differential test (python3)
 # Report: make report    -> report/main.pdf (English) and report/main_pt_br.pdf (pt-BR)
 #                           (requires pdflatex + latexmk + IEEEtran)
 
@@ -28,10 +29,14 @@ $(SRC)/%.o: $(SRC)/%.cpp $(wildcard $(SRC)/*.hpp)
 test: all
 	bash scripts/run_tests.sh
 
+stress: all
+	python3 scripts/fuzz.py
+	python3 scripts/differential.py
+
 report:
 	cd report && latexmk -pdf -interaction=nonstopmode main.tex main_pt_br.tex
 
 clean:
 	rm -f $(SRC)/*.o montador$(EXE) ligador$(EXE)
 
-.PHONY: all test report clean
+.PHONY: all test stress report clean

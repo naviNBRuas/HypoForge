@@ -1,0 +1,17 @@
+; a false IF drops the next statement, which here is another IF
+A: EQU 0
+B: EQU 1
+C: EQU A
+SECTION TEXT
+IF A
+IF B
+IF C
+OUTPUT X
+IF 1
+OUTPUT X
+IF 0
+NAO_E_INSTRUCAO QUALQUER COISA
+STOP
+IF B
+SECTION DATA
+X: SPACE

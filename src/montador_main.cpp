@@ -4,6 +4,7 @@
 //   ./montador --modular programa.asm  -> programa.OBJ with D/U/R header (used by ligador)
 
 #include <algorithm>
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -34,14 +35,21 @@ int main(int argc, char** argv) {
     if (input.empty()) { usage(); return 2; }
 
     std::vector<std::string> lines;
-    if (!sb::readLines(input, lines)) {
+    // Convenience: "./montador prog" also finds "prog.asm" when "prog" itself does not exist.
+    if (!sb::readLines(input, lines) && sb::replaceExtension(input, "") == input &&
+        sb::readLines(input + ".asm", lines))
+        input += ".asm";
+    if (lines.empty() && !sb::readLines(input, lines)) {
         std::cout << "Erro: nao foi possivel abrir o arquivo '" << input << "'\n";
         return 2;
     }
 
     const sb::AssemblyResult result = sb::assemble(lines);
 
+    const std::string out = sb::replaceExtension(input, ".OBJ");
+
     if (!result.ok()) {
+        std::remove(out.c_str());  // never leave a stale object from an earlier run
         for (const auto& d : result.diagnostics) {
             if (d.line > 0) {
                 std::cout << "[ERRO " << sb::errorTypeName(d.type) << "] linha " << d.line << ": " << d.message << "\n";
@@ -59,7 +67,6 @@ int main(int argc, char** argv) {
     if (!modular && !result.uses.empty())
         std::cerr << "Aviso: '" << input << "' usa simbolos EXTERN; o objeto so e executavel apos a ligacao (use o ligador).\n";
 
-    const std::string out = sb::replaceExtension(input, ".OBJ");
     const std::string text = modular ? sb::formatModuleObject(result) : sb::formatPlainObject(result.words);
     if (!sb::writeWholeFile(out, text)) {
         std::cout << "Erro: nao foi possivel escrever '" << out << "'\n";

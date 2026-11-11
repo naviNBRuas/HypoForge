@@ -81,6 +81,31 @@ for src in "$ROOT"/tests/sim/*.asm; do
   else bad "$name" "expected: $(echo $(cat "$ROOT/tests/sim/$name.out"))"$'\n'"got:      $(echo $res)"; fi
 done
 
+echo "== command line: file names, arguments and stale outputs"
+CLI="$WORK/cli"; mkdir -p "$CLI/dir.v1/sub dir"
+prog=$'SECTION TEXT\nSTOP\n'
+printf '%s' "$prog" > "$CLI/dir.v1/sub dir/my.prog.asm"
+"$MONT" "$CLI/dir.v1/sub dir/my.prog.asm" >/dev/null 2>&1
+if [ -f "$CLI/dir.v1/sub dir/my.prog.OBJ" ]; then ok "dots and blanks in the path -> my.prog.OBJ"; else bad "dots and blanks in the path"; fi
+printf '%s' "$prog" > "$CLI/UPPER.ASM"; "$MONT" "$CLI/UPPER.ASM" >/dev/null 2>&1
+if [ -f "$CLI/UPPER.OBJ" ]; then ok "upper-case .ASM extension -> UPPER.OBJ"; else bad "upper-case .ASM extension"; fi
+printf '%s' "$prog" > "$CLI/semext.asm"; "$MONT" "$CLI/semext" >/dev/null 2>&1
+if [ -f "$CLI/semext.OBJ" ]; then ok "name without extension finds semext.asm"; else bad "name without extension"; fi
+printf 'SECTION TEXT\nSTOP X\n' > "$CLI/UPPER.ASM"; "$MONT" "$CLI/UPPER.ASM" >/dev/null 2>&1; rc=$?
+if [ $rc -eq 1 ] && [ ! -e "$CLI/UPPER.OBJ" ]; then ok "failed assembly removes the stale .OBJ"; else bad "stale .OBJ (rc=$rc)"; fi
+"$MONT" "$CLI/nao_existe.asm" >/dev/null 2>&1; rc=$?
+if [ $rc -eq 2 ]; then ok "missing input file -> exit 2"; else bad "missing input file (rc=$rc)"; fi
+"$MONT" >/dev/null 2>&1; rc1=$?; "$MONT" a.asm b.asm >/dev/null 2>&1; rc2=$?
+if [ $rc1 -eq 2 ] && [ $rc2 -eq 2 ]; then ok "montador usage errors -> exit 2"; else bad "montador usage (rc=$rc1/$rc2)"; fi
+"$LIG" >/dev/null 2>&1; rc1=$?; "$LIG" a.asm b.asm c.asm d.asm >/dev/null 2>&1; rc2=$?
+if [ $rc1 -eq 2 ] && [ $rc2 -eq 2 ]; then ok "ligador with 0 or 4 modules -> exit 2"; else bad "ligador usage (rc=$rc1/$rc2)"; fi
+cp "$ROOT"/tests/link/two_modules/*.asm "$CLI/"
+(cd "$CLI" && "$LIG" modulo1.asm modulo2.asm >/dev/null 2>&1)
+if cmp -s "$CLI/modulo1.LIG" "$ROOT/tests/link/two_modules/expected.LIG"; then ok "ligador run from another directory"; else bad "ligador from another directory"; fi
+printf 'M: BEGIN\nSECTION TEXT\nSTOP X\nEND\n' > "$CLI/modulo2.asm"
+(cd "$CLI" && "$LIG" modulo1.asm modulo2.asm >/dev/null 2>&1); rc=$?
+if [ $rc -eq 1 ] && [ ! -e "$CLI/modulo1.LIG" ]; then ok "failed linking removes the stale .LIG"; else bad "stale .LIG (rc=$rc)"; fi
+
 echo
 echo "Result: $pass passed, $fail failed, $skipped skipped"
 [ $fail -eq 0 ]

@@ -165,8 +165,18 @@ bool Assembler::parseOperands(int line, const std::vector<Token>& a, std::vector
                 if (k < a.size() && a[k].kind == Token::Kind::Number) {
                     arg.offset = a[k].value;
                     ++k;
+                } else if (k < a.size() && a[k].kind == Token::Kind::Ident) {
+                    // An EQU constant may be used as the offset (EQU always precedes the sections).
+                    auto eq = symbols_.find(a[k].text);
+                    if (eq != symbols_.end() && eq->second.kind == SymKind::Equ) {
+                        arg.offset = eq->second.value;
+                    } else {
+                        synErr(line, "'+' deve ser seguido de um numero ou constante EQU (ex.: X + 2)");
+                        ok = false;
+                    }
+                    ++k;
                 } else {
-                    synErr(line, "'+' deve ser seguido de um numero (ex.: X + 2)");
+                    synErr(line, "'+' deve ser seguido de um numero ou constante EQU (ex.: X + 2)");
                     ok = false;
                 }
             }
@@ -212,7 +222,7 @@ std::vector<long long> Assembler::parseValues(int line, const std::vector<Token>
             if (it != symbols_.end() && it->second.kind == SymKind::Equ) {
                 values.push_back(it->second.value);
             } else {
-                semErr(line, "'" + t.text + "' nao e uma constante EQU definida");
+                if (!lineHasLexError_) semErr(line, "'" + t.text + "' nao e uma constante EQU definida");
                 values.push_back(0);
                 ok = false;
             }
@@ -555,6 +565,9 @@ void Assembler::emitOperand(const Statement& st, std::size_t index, Role role, b
         if (role == Role::Write && s.kind == SymKind::Const)
             semErr(st.line, "modificacao de valor constante: '" + arg.name + "' foi declarado com CONST");
     }
+    if ((s.kind == SymKind::Const || s.kind == SymKind::Space) && (arg.offset < 0 || arg.offset >= s.size))
+        semErr(st.line, "acesso fora da area reservada: '" + arg.name + " + " + std::to_string(arg.offset) +
+                            "', mas '" + arg.name + "' reserva " + std::to_string(s.size) + " palavra(s)");
     if (isDiv && s.kind == SymKind::Const && s.value == 0 && arg.offset == 0)
         semErr(st.line, "divisao por zero: '" + arg.name + "' e uma constante igual a 0");
 

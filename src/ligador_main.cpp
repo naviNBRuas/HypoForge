@@ -4,8 +4,8 @@
 //
 // Each module is assembled by calling the `montador` executable (kept next to this binary).
 
+#include <cstdio>
 #include <cstdlib>
-#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -17,21 +17,34 @@
 #include <sys/wait.h>
 #endif
 
-namespace fs = std::filesystem;
-
 namespace {
 
-std::string montadorCommand(const char* argv0) {
+bool fileExists(const std::string& path) {
+    if (std::FILE* f = std::fopen(path.c_str(), "rb")) {
+        std::fclose(f);
+        return true;
+    }
+    return false;
+}
+
+// Finds the montador executable: next to this ligador, then in the current directory, then on PATH.
+// (Plain string handling instead of <filesystem>, which needs -lstdc++fs on older g++/MinGW.)
+std::string montadorCommand(const std::string& argv0) {
 #ifdef _WIN32
-    const char* exe = "montador.exe";
+    const std::string exe = "montador.exe";
 #else
-    const char* exe = "montador";
+    const std::string exe = "montador";
 #endif
-    fs::path dir = fs::path(argv0).parent_path();
-    fs::path candidate = dir / exe;
-    std::error_code ec;
-    if (!dir.empty() && fs::exists(candidate, ec)) return candidate.string();
-    if (fs::exists(fs::path(".") / exe, ec)) return (fs::path(".") / exe).string();
+    const auto slash = argv0.find_last_of("/\\");
+    if (slash != std::string::npos) {
+        const std::string candidate = argv0.substr(0, slash + 1) + exe;
+        if (fileExists(candidate)) return candidate;
+    }
+#ifdef _WIN32
+    if (fileExists(exe)) return ".\\" + exe;
+#else
+    if (fileExists(exe)) return "./" + exe;
+#endif
     return exe;  // fall back to PATH
 }
 
@@ -57,6 +70,8 @@ int main(int argc, char** argv) {
     }
     std::vector<std::string> asmFiles(argv + 1, argv + argc);
     const std::string montador = montadorCommand(argv[0]);
+    const std::string out = sb::replaceExtension(asmFiles[0], ".LIG");
+    std::remove(out.c_str());  // never leave a stale executable from an earlier run
 
     // 1) Assemble every module separately.
     std::vector<sb::ModuleObject> modules;
@@ -89,7 +104,6 @@ int main(int argc, char** argv) {
     for (const auto& s : res.symbols)
         std::cout << "  simbolo " << s.name << " (" << s.module << ") = " << s.address << "\n";
 
-    const std::string out = sb::replaceExtension(asmFiles[0], ".LIG");
     if (!sb::writeWholeFile(out, sb::formatPlainObject(res.code))) {
         std::cout << "Erro: nao foi possivel escrever '" << out << "'\n";
         return 2;

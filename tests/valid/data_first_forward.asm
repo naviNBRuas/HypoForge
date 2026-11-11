@@ -1,0 +1,7 @@
+; DATA before TEXT and a forward jump
+SECTION DATA
+X: SPACE
+SECTION TEXT
+JMP FIM
+INPUT X
+FIM: STOP
