@@ -23,8 +23,3 @@ report/*.bbl
 report/*.blg
 
 .DS_Store
-
-# course-provided material, not redistributed in the public repo (kept locally)
-docs/assignment/*.pdf
-tools/simulador/simulador
-tools/simulador/simulador.exe
