@@ -1,0 +1,11 @@
+* text=auto eol=lf
+*.pdf binary
+*.png binary
+*.jpg binary
+tools/simulador/simulador binary
+tools/simulador/simulador.exe binary
+# this test intentionally uses CRLF line endings
+tests/valid/case_whitespace.asm -text
+# expected object files must keep their exact bytes (trailing blank, no newline)
+*.expected.OBJ -text
+expected.LIG -text

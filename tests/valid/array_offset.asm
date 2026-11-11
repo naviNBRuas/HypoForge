@@ -1,0 +1,12 @@
+; "LABEL + N" addressing and SPACE with a size argument
+SECTION TEXT
+INPUT V
+INPUT V + 1
+LOAD V
+ADD V + 1
+STORE R
+OUTPUT R
+STOP
+SECTION DATA
+V: SPACE 2
+R: SPACE
