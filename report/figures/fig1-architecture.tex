@@ -19,21 +19,21 @@
   arrow/.style={-{Latex[length=2.4mm]}, line width=1pt, draw=textgray},
   warrow/.style={-{Latex[length=2.2mm]}, line width=0.8pt, draw=navy!60, dashed}
 ]
-% linha 1
-\node[box, fill=grayfill] (asm) {\textbf{prog.asm}\\código-fonte};
-\node[box, right=9mm of asm, fill=bluefill] (lex) {\textbf{Análise léxica}\\tokens, 30 car.,\\comentários};
-\node[box, right=9mm of lex, fill=bluefill] (p1) {\textbf{Passagem 1}\\sintaxe, EQU/IF,\\tabela de símbolos};
-% linha 2
-\node[box, below=14mm of p1, fill=bluefill] (p2) {\textbf{Passagem 2}\\semântica, operandos,\\geração de código};
-\node[box, left=9mm of p2, fill=greenfill] (obj) {\textbf{prog.OBJ}\\uma linha de\\palavras};
-\node[box, left=9mm of obj, fill=redfill] (diag) {\textbf{Diagnósticos}\\LEXICO $\cdot$ SINTATICO\\SEMANTICO + linha};
+% row 1
+\node[box, fill=grayfill] (asm) {\textbf{prog.asm}\\source code};
+\node[box, right=9mm of asm, fill=bluefill] (lex) {\textbf{Lexical analysis}\\tokens, 30 chars,\\comments};
+\node[box, right=9mm of lex, fill=bluefill] (p1) {\textbf{Pass 1}\\syntax, EQU/IF,\\symbol table};
+% row 2
+\node[box, below=14mm of p1, fill=bluefill] (p2) {\textbf{Pass 2}\\semantics, operands,\\code generation};
+\node[box, left=9mm of p2, fill=greenfill] (obj) {\textbf{prog.OBJ}\\one line of\\words};
+\node[box, left=9mm of obj, fill=redfill] (diag) {\textbf{Diagnostics}\\LEXICO $\cdot$ SINTATICO\\SEMANTICO + line};
 
 \draw[arrow] (asm) -- (lex);
 \draw[arrow] (lex) -- (p1);
 \draw[arrow] (p1) -- (p2);
-\draw[arrow] (p2) -- node[above=1mm, font=\sffamily\scriptsize, text=textgray] {sem erros} (obj);
+\draw[arrow] (p2) -- node[above=1mm, font=\sffamily\scriptsize, text=textgray] {no errors} (obj);
 \draw[warrow] (lex.south) to[out=-90,in=90] (diag.north);
-\draw[warrow] (p2.south) -- ++(0,-5mm) -| node[pos=0.25, below, font=\sffamily\scriptsize, text=textgray] {erros} (diag.south);
+\draw[warrow] (p2.south) -- ++(0,-5mm) -| node[pos=0.25, below, font=\sffamily\scriptsize, text=textgray] {errors} (diag.south);
 
 \begin{pgfonlayer}{background}
   \node[draw=navy!16, fill=navy!3, rounded corners=4mm, inner sep=6mm,

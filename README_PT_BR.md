@@ -28,7 +28,7 @@ Requisitos: compilador C++17 (`g++` ≥ 8, MinGW funciona) e `make`. LaTeX (`pdf
 3. Montar o exemplo fornecido e comparar com o objeto de referência:
    `./montador examples/bin.asm && cmp examples/bin.OBJ examples/bin.expected.OBJ`
 4. Provocar erros: `./montador tests/invalid/semantic.asm`
-5. Gerar o relatório (PDF): `make report` → `report/main.pdf`
+5. Gerar os relatórios (PDF): `make report` → `report/main_pt_br.pdf` (português) e `report/main.pdf` (inglês)
 
 O simulador em `tools/simulador/` é o fornecido pela disciplina (`simulador` para Linux, `simulador.exe` para Windows);
 se não executar na sua máquina, `make test` marca esses casos como *skipped*.
@@ -54,7 +54,7 @@ $ ./montador tests/invalid/spec_example.asm
 
 - `make` — compila
 - `make test` — executa `scripts/run_tests.sh`
-- `make report` — gera `report/main.pdf`
+- `make report` — gera `report/main_pt_br.pdf` e `report/main.pdf`
 - `make clean` — remove binários e objetos
 
 ## Estrutura do repositório
@@ -63,15 +63,16 @@ $ ./montador tests/invalid/spec_example.asm
 - `tests/` — casos `valid/`, `invalid/`, `link/`, `sim/` com seus resultados esperados
 - `examples/` — exemplos da disciplina (`bin.asm`, exemplo de dois módulos)
 - `docs/` — [arquitetura](docs/pt-BR/ARQUITETURA.md), [formatos de objeto](docs/pt-BR/FORMATO_OBJETO.md) (inglês em `docs/`) e o PDF original do enunciado
-- `report/` — relatório IEEE em LaTeX, em português (modelo UnB)
+- `report/` — relatório IEEE em LaTeX (modelo UnB): `main_pt_br.tex` em português, `main.tex` em inglês
 - `scripts/` — executor dos testes
 - `tools/simulador/` — simulador da disciplina (Linux e Windows)
 - `Projeto_Instrucoes.md` / `Project-Instructions.md` — o enunciado, organizado em português e inglês
 
 ## Relatório
 
-O relatório é escrito em português no formato IEEE e fica em `report/main.tex`
-(preencha as macros do autor no topo do arquivo antes de compilar).
+O relatório segue o formato IEEE de conferência (modelo UnB). A versão em português, entregue na disciplina,
+é `report/main_pt_br.tex`, e a versão em inglês é `report/main.tex`.
+Os PDFs compilados são artefatos de build e não são versionados; use `make report` para gerá-los.
 
 ## Licença
 

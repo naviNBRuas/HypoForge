@@ -1,6 +1,7 @@
 # Build: make            -> ./montador and ./ligador
 # Tests: make test       -> runs scripts/run_tests.sh
-# Report: make report    -> report/main.pdf (requires pdflatex + IEEEtran)
+# Report: make report    -> report/main.pdf (English) and report/main_pt_br.pdf (pt-BR)
+#                           (requires pdflatex + latexmk + IEEEtran)
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -pedantic
@@ -28,7 +29,7 @@ test: all
 	bash scripts/run_tests.sh
 
 report:
-	cd report && latexmk -pdf -interaction=nonstopmode main.tex
+	cd report && latexmk -pdf -interaction=nonstopmode main.tex main_pt_br.tex
 
 clean:
 	rm -f $(SRC)/*.o montador$(EXE) ligador$(EXE)

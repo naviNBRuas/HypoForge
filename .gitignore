@@ -11,7 +11,8 @@
 !*.expected.OBJ
 !expected.LIG
 
-# LaTeX
+# LaTeX (compiled reports are deliverables, built with `make report`, not versioned)
+report/*.pdf
 report/*.aux
 report/*.log
 report/*.out

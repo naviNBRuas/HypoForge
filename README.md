@@ -28,7 +28,7 @@ Requirements: a C++17 compiler (`g++` ≥ 8, MinGW works) and `make`. LaTeX (`pd
 3. Assemble the provided sample and compare with the reference object:
    `./montador examples/bin.asm && cmp examples/bin.OBJ examples/bin.expected.OBJ`
 4. Provoke errors: `./montador tests/invalid/semantic.asm`
-5. Build the report (PDF): `make report` → `report/main.pdf`
+5. Build the reports (PDF): `make report` → `report/main.pdf` (English) and `report/main_pt_br.pdf` (Portuguese)
 
 The simulator in `tools/simulador/` is the course-provided one (`simulador` for Linux, `simulador.exe` for Windows);
 if it cannot run on your machine, `make test` marks those cases as *skipped*.
@@ -54,7 +54,7 @@ $ ./montador tests/invalid/spec_example.asm
 
 - `make` — build
 - `make test` — run `scripts/run_tests.sh`
-- `make report` — build `report/main.pdf`
+- `make report` — build `report/main.pdf` and `report/main_pt_br.pdf`
 - `make clean` — remove binaries and objects
 
 ## Repository layout
@@ -63,15 +63,19 @@ $ ./montador tests/invalid/spec_example.asm
 - `tests/` — `valid/`, `invalid/`, `link/`, `sim/` cases with their expected results
 - `examples/` — course samples (`bin.asm`, two-module example)
 - `docs/` — [architecture](docs/ARCHITECTURE.md), [object formats](docs/OBJECT_FORMAT.md) (Portuguese in `docs/pt-BR/`) and the original assignment PDF
-- `report/` — IEEE LaTeX report in Portuguese (UnB template)
+- `report/` — IEEE LaTeX report (UnB template): `main.tex` in English, `main_pt_br.tex` in Portuguese
 - `scripts/` — test runner
 - `tools/simulador/` — course simulator (Linux and Windows)
 - `Projeto_Instrucoes.md` / `Project-Instructions.md` — the assignment, organised in Portuguese and English
 
 ## Report
 
-The report is written in Portuguese in IEEE format and lives in `report/main.tex`
-(fill in the author macros at the top of the file before building).
+The report follows the IEEE conference format (UnB template). The English version is `report/main.tex`
+and its Portuguese translation, submitted to the course, is `report/main_pt_br.tex`.
+Compiled PDFs are build outputs and are not versioned; run `make report` to produce them.
+
+The tools' console messages (`[ERRO SEMANTICO] linha N: ...`) stay in Portuguese, because the assignment
+requires the error classes `LEXICO`, `SINTATICO` and `SEMANTICO`.
 
 ## License
 
